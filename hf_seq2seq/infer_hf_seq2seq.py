@@ -81,7 +81,7 @@ def main() -> None:
         feed_forward_dimension=int(cfg["feed_forward_dimension"]),
     ).to(device)
 
-    state = torch.load(str(ckpt), map_location=device)
+    state = torch.load(str(ckpt), map_location=device, weights_only=True)
     model.load_state_dict(state["model_state_dict"])
     model.eval()
 
