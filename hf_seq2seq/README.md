@@ -36,26 +36,33 @@ Koristi se isti **Transformer** iz `model.py` (encoder + decoder).
 U root folderu projekta:
 
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt -f https://download.pytorch.org/whl/cu121
 ```
 
 ---
 
 ## Pokretanje (PowerShell, iz root foldera)
 
-### Trening (SAMSum)
-
-```powershell
-python .\hf_seq2seq\train_hf_seq2seq.py `
-  --dataset knkarthick/samsum `
-  --source-column dialogue `
-  --target-column summary `
-  --run-dir "runs/hf_seq2seq_samsum" `
-  --epochs 3 `
-  --max-train 5000 --max-val 500 --max-test 500
+### Prvo proveriti da li je GPU dostupan i da li se koristi
+```python
+import torch
+print(torch.cuda.is_available())
+print(torch.cuda.get_device_name(0))
 ```
 
-Ako `knkarthick/samsum` ne postoji, probaj `--dataset Samsung/samsum`.
+### Trening 
+
+```powershell
+python .\hf_seq2seq\train_hf_seq2seq.py 
+```
+
+### Nastavak od prethodno odradjene epohe
+```powershell
+python hf_seq2seq\train_hf_seq2seq.py 
+--run-dir "runs/hf_seq2seq_samsum_big" 
+--resume-from "runs/hf_seq2seq_samsum_big/weights/epoch_014.pt"  
+```
+U ovom primeru je epoha 014 - pronalazi se u runs/weights folderu koja je poslednja.
 
 ### TensorBoard
 
@@ -68,4 +75,3 @@ tensorboard --logdir "runs/hf_seq2seq_samsum\tensorboard"
 ```powershell
 python .\hf_seq2seq\infer_hf_seq2seq.py --run-dir "runs/hf_seq2seq_samsum" --sentence "Amanda: I baked cookies. Do you want some? Robert: Sure!"
 ```
-

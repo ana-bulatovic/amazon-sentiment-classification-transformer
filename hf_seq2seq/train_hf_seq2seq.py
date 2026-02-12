@@ -306,27 +306,49 @@ def evaluate(model, loader: DataLoader, loss_fn: nn.Module, target_tokenizer: To
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    # parser.add_argument("--dataset", default="knkarthick/samsum", help="HF dataset, npr. knkarthick/samsum")
+    # parser.add_argument("--dataset-config", default="", help="Prazno za samsum")
+    # parser.add_argument("--source-column", default="dialogue", help="dialogue (samsum) ili translation.en")
+    # parser.add_argument("--target-column", default="summary", help="summary (samsum) ili translation.fr")
+    # parser.add_argument("--run-dir", default="runs/hf_seq2seq_samsum")
+    # parser.add_argument("--force-rebuild-tokenizers", action="store_true")
+    # parser.add_argument("--epochs", type=int, default=3)
+    # parser.add_argument("--batch-size", type=int, default=16)
+    # parser.add_argument("--lr", type=float, default=3e-4)
+    # parser.add_argument("--seed", type=int, default=561)
+    # parser.add_argument("--context-size", type=int, default=128)
+    # parser.add_argument("--d-model", type=int, default=128)
+    # parser.add_argument("--blocks", type=int, default=4)
+    # parser.add_argument("--heads", type=int, default=4)
+    # parser.add_argument("--dropout", type=float, default=0.1)
+    # parser.add_argument("--d-ff", type=int, default=512)
+    # parser.add_argument("--max-train", type=int, default=5000)
+    # parser.add_argument("--max-val", type=int, default=500)
+    # parser.add_argument("--max-test", type=int, default=500)
+    # parser.add_argument("--warmup-steps", type=int, default=500, help="Koraci za warmup learning rate")
+    # parser.add_argument("--grad-clip", type=float, default=1.0, help="Maksimalna norma gradijenta (0 = isključeno)")
     parser.add_argument("--dataset", default="knkarthick/samsum", help="HF dataset, npr. knkarthick/samsum")
     parser.add_argument("--dataset-config", default="", help="Prazno za samsum")
     parser.add_argument("--source-column", default="dialogue", help="dialogue (samsum) ili translation.en")
     parser.add_argument("--target-column", default="summary", help="summary (samsum) ili translation.fr")
-    parser.add_argument("--run-dir", default="runs/hf_seq2seq_samsum")
+    parser.add_argument("--run-dir", default="runs/hf_seq2seq_samsum_big")
     parser.add_argument("--force-rebuild-tokenizers", action="store_true")
-    parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument("--epochs", type=int, default=33)  # dovoljno epoha
+    parser.add_argument("--batch-size", type=int, default=16)  # RTX 3090 može i 32 ako ima memorije
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--seed", type=int, default=561)
-    parser.add_argument("--context-size", type=int, default=128)
-    parser.add_argument("--d-model", type=int, default=128)
-    parser.add_argument("--blocks", type=int, default=4)
-    parser.add_argument("--heads", type=int, default=4)
+    parser.add_argument("--context-size", type=int, default=256)  # duži kontekst
+    parser.add_argument("--d-model", type=int, default=256)  # veći model
+    parser.add_argument("--blocks", type=int, default=6)
+    parser.add_argument("--heads", type=int, default=8)
     parser.add_argument("--dropout", type=float, default=0.1)
-    parser.add_argument("--d-ff", type=int, default=512)
-    parser.add_argument("--max-train", type=int, default=5000)
-    parser.add_argument("--max-val", type=int, default=500)
-    parser.add_argument("--max-test", type=int, default=500)
-    parser.add_argument("--warmup-steps", type=int, default=500, help="Koraci za warmup learning rate")
-    parser.add_argument("--grad-clip", type=float, default=1.0, help="Maksimalna norma gradijenta (0 = isključeno)")
+    parser.add_argument("--d-ff", type=int, default=1024)
+    parser.add_argument("--max-train", type=int, default=14732)  # ceo samsum train split
+    parser.add_argument("--max-val", type=int, default=819)
+    parser.add_argument("--max-test", type=int, default=819)
+    parser.add_argument("--warmup-steps", type=int, default=1000)  # malo duže warmup
+    parser.add_argument("--grad-clip", type=float, default=1.0)
+    parser.add_argument("--resume-from", type=str, default=None, help="Path do checkpoint-a za nastavak treninga")
     args = parser.parse_args()
     ds_config = args.dataset_config.strip() or None
 
@@ -373,7 +395,17 @@ def main() -> None:
     pad_id = tgt_tok.token_to_id("[PAD]")
     loss_fn = nn.CrossEntropyLoss(ignore_index=pad_id, label_smoothing=0.1).to(device)
     writer = SummaryWriter(str(tb_dir))
-    global_step = 0
+
+    if args.resume_from:
+        checkpoint = torch.load(args.resume_from, map_location=device)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        start_epoch = checkpoint["epoch"] + 1
+        global_step = checkpoint.get("global_step", 0)
+        print(f"Nastavljam trening od epohe {start_epoch}")
+    else:
+        start_epoch = 0
+        global_step = 0
 
     # Warmup: linearno povećanje LR u prvih warmup_steps koraka
     total_steps = len(train_loader) * cfg.num_epochs
@@ -381,7 +413,7 @@ def main() -> None:
 
     best_val_loss = float("inf")
 
-    for epoch in range(cfg.num_epochs):
+    for epoch in range(start_epoch,cfg.num_epochs):
         model.train()
         pbar = tqdm(train_loader, desc=f"epoch {epoch+1}/{cfg.num_epochs}")
         for batch in pbar:
