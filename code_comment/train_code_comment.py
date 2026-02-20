@@ -343,6 +343,7 @@ def main() -> None:
     parser.add_argument("--max-test", type=int, default=1_000)
     parser.add_argument("--warmup-steps", type=int, default=500)
     parser.add_argument("--grad-clip", type=float, default=1.0)
+    parser.add_argument("--resume-from", type=str, default=None, help="Putanja do checkpoint-a (npr. runs/code_comment/weights/epoch_003.pt) za nastavak treninga")
     parser.add_argument("--patience", type=int, default=3, help="Early stopping (0 = isključeno)")
     args = parser.parse_args()
     ds_config = args.dataset_config.strip() or None
@@ -414,13 +415,23 @@ def main() -> None:
     loss_fn = nn.CrossEntropyLoss(ignore_index=pad_id, label_smoothing=0.1).to(device)
     writer = SummaryWriter(str(tb_dir))
 
+    if args.resume_from:
+        checkpoint = torch.load(args.resume_from, map_location=device, weights_only=False)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        start_epoch = checkpoint["epoch"] + 1
+        global_step = checkpoint.get("global_step", 0)
+        print(f"Nastavljam trening od epohe {start_epoch} (global_step={global_step})")
+    else:
+        start_epoch = 0
+        global_step = 0
+
     total_steps = len(train_loader) * cfg.num_epochs
     warmup_steps = min(args.warmup_steps, max(1, total_steps // 10))
     best_val_loss = float("inf")
     epochs_no_improve = 0
-    global_step = 0
 
-    for epoch in range(cfg.num_epochs):
+    for epoch in range(start_epoch, cfg.num_epochs):
         model.train()
         pbar = tqdm(train_loader, desc=f"epoch {epoch+1}/{cfg.num_epochs}")
         for batch in pbar:

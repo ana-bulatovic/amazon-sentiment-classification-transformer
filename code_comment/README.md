@@ -33,7 +33,12 @@ Iz korena repozitorijuma (folder `transformer`):
 python code_comment/train_code_comment.py --run-dir runs/code_comment
 ```
 
-Opcije: `--max-train`, `--epochs`, `--batch-size`, `--context-size`, `--d-model`, itd.
+**Nastavak treninga od prethodne epohe (resume):**
+```bash
+python code_comment/train_code_comment.py --run-dir runs/code_comment --resume-from runs/code_comment/weights/epoch_003.pt
+```
+
+Opcije: `--max-train`, `--epochs`, `--batch-size`, `--context-size`, `--d-model`, `--resume-from`, itd.
 
 **Inferenca (opis za zadati kod):**
 ```bash
