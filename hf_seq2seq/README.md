@@ -62,6 +62,10 @@ python hf_seq2seq\train_hf_seq2seq.py --run-dir "runs/hf_seq2seq_samsum_big --re
 ```
 U ovom primeru je epoha 014 - pronalazi se u runs/weights folderu koja je poslednja.
 
+### Brisanje epoha
+```powershell
+python .\hf_seq2seq\fix_best_and_trim_epochs.py --run-dir "runs/hf_seq2seq_samsum_big" --max-epoch 25
+```
 ### TensorBoard
 
 ```powershell

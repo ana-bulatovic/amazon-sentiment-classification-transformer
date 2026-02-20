@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4a53df74-1e8a-43fb-b025-8f134b88c104" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/transformer.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/transformer.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hf_seq2seq/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/hf_seq2seq/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hf_seq2seq/train_hf_seq2seq.py" beforeDir="false" afterPath="$PROJECT_DIR$/hf_seq2seq/train_hf_seq2seq.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-    </list>
+    <list default="true" id="4a53df74-1e8a-43fb-b025-8f134b88c104" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -170,7 +161,7 @@
       <workItem from="1770917898587" duration="160000" />
       <workItem from="1771180677638" duration="4496000" />
       <workItem from="1771350307928" duration="29000" />
-      <workItem from="1771582083135" duration="795000" />
+      <workItem from="1771582083135" duration="1358000" />
     </task>
     <servers />
   </component>
