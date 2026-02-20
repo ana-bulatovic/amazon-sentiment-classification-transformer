@@ -333,7 +333,7 @@ def main() -> None:
     parser.add_argument("--target-column", default="summary", help="summary (samsum) ili translation.fr")
     parser.add_argument("--run-dir", default="runs/hf_seq2seq_samsum_big")
     parser.add_argument("--force-rebuild-tokenizers", action="store_true")
-    parser.add_argument("--epochs", type=int, default=33)  # dovoljno epoha
+    parser.add_argument("--epochs", type=int, default=35)  # dovoljno epoha
     parser.add_argument("--batch-size", type=int, default=16)  # RTX 3090 može i 32 ako ima memorije
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--seed", type=int, default=561)
@@ -349,6 +349,7 @@ def main() -> None:
     parser.add_argument("--warmup-steps", type=int, default=1000)  # malo duže warmup
     parser.add_argument("--grad-clip", type=float, default=1.0)
     parser.add_argument("--resume-from", type=str, default=None, help="Path do checkpoint-a za nastavak treninga")
+    parser.add_argument("--patience", type=int, default=5, help="Early stopping: zaustavi trening ako val_loss ne poboljšava N epoha (0 = isključeno)")
     args = parser.parse_args()
     ds_config = args.dataset_config.strip() or None
 
@@ -412,8 +413,9 @@ def main() -> None:
     warmup_steps = min(args.warmup_steps, max(1, total_steps // 10))
 
     best_val_loss = float("inf")
+    epochs_no_improve = 0  # za early stopping
 
-    for epoch in range(start_epoch,cfg.num_epochs):
+    for epoch in range(start_epoch, cfg.num_epochs):
         model.train()
         pbar = tqdm(train_loader, desc=f"epoch {epoch+1}/{cfg.num_epochs}")
         for batch in pbar:
@@ -447,8 +449,22 @@ def main() -> None:
         # Čuvaj najbolji model po validacionom loss-u
         if val_metrics["val_loss"] < best_val_loss:
             best_val_loss = val_metrics["val_loss"]
+            epochs_no_improve = 0
             torch.save({"epoch": epoch, "global_step": global_step, "model_state_dict": model.state_dict(), "optimizer_state_dict": optimizer.state_dict(), "val_metrics": val_metrics, "best_val_loss": best_val_loss}, weights_dir / "best.pt")
+        else:
+            epochs_no_improve += 1
+        # Early stopping
+        if args.patience > 0 and epochs_no_improve >= args.patience:
+            print(f"Early stopping: val_loss se nije poboljšao {args.patience} epoha. Zaustavljam na epohi {epoch + 1}.")
+            break
 
+    # Konačna test evaluacija na NAJBOLJEM modelu (best.pt), ne na poslednjoj epohi
+    best_pt = weights_dir / "best.pt"
+    if best_pt.exists():
+        ckpt = torch.load(best_pt, map_location=device)
+        model.load_state_dict(ckpt["model_state_dict"])
+        bvl = ckpt.get("best_val_loss") or (ckpt.get("val_metrics") or {}).get("val_loss")
+        print(f"Test evaluacija na best.pt (epoch {ckpt['epoch']+1}, val_loss={bvl})")
     test_metrics = evaluate(model, test_loader, loss_fn, tgt_tok, device, cfg.context_size, writer=None, global_step=global_step, stage="test", decode_examples=200)
     save_json(run_dir / "test_metrics.json", test_metrics)
     print("Gotovo.", run_dir, "Test metrike:", test_metrics)

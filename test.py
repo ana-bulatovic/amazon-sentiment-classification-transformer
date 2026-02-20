@@ -6,7 +6,7 @@ RUN_DIR = "runs/hf_seq2seq_samsum_big"
 
 # Lista dijaloga za test
 DIALOGUES = [
-    "Amanda: I baked cookies. Robert: Sure!",
+    "Amanda: Do you want some cookies? Robert: Sure!",
     "Alice: Did you finish the report? Bob: Not yet, I need one more hour.",
     "John: Can you pick up groceries? Mary: Yes, after work.",
     "Emma: Are you coming to the party tonight? Liam: I think so.",
@@ -23,7 +23,7 @@ DIALOGUES = [
     "Victoria: Did you see the latest episode? Jackson: Not yet, no spoilers!"
 ]
 
-PYTHON = r"C:\Users\rcadmin\Desktop\transformer\dialogue-summarization-transformer\venv\Scripts\python.exe"
+PYTHON = r"C:\Users\ANA\Desktop\Faks\Master\SIBP\transformer\venv\Scripts\python.exe"
 
 def summarize_dialogue(dialogue: str):
     cmd = [

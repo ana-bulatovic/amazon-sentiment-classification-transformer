@@ -58,9 +58,7 @@ python .\hf_seq2seq\train_hf_seq2seq.py
 
 ### Nastavak od prethodno odradjene epohe
 ```powershell
-python hf_seq2seq\train_hf_seq2seq.py 
---run-dir "runs/hf_seq2seq_samsum_big" 
---resume-from "runs/hf_seq2seq_samsum_big/weights/epoch_014.pt"  
+python hf_seq2seq\train_hf_seq2seq.py --run-dir "runs/hf_seq2seq_samsum_big --resume-from "runs/hf_seq2seq_samsum_big/weights/epoch_032.pt"  
 ```
 U ovom primeru je epoha 014 - pronalazi se u runs/weights folderu koja je poslednja.
 
